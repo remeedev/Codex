@@ -12,4 +12,3 @@ java -cp "out" com.remeedev.codex.Main
 # TODO
 
 - analyzer
-- Buffer ctrl z

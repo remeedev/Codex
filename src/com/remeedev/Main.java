@@ -102,10 +102,54 @@ class editingListener implements DocumentListener {
     public JTextPane lines;
     public changeFile cf;
     public File fileBuff;
+    public String[] buffer = new String[25];
+    public int position = 0;
+    private int ignore = 0;
+
+    public Action undoAction = new AbstractAction(){
+            public void actionPerformed(ActionEvent e){
+                if (position == buffer.length-1 || buffer[position+1] == null){
+                    return;
+                }
+                position++;
+                ignore = 2;
+                cf.fileContent.setText(buffer[position]);
+            }
+        };
+
+    public Action redoAction = new AbstractAction(){
+            public void actionPerformed(ActionEvent e){
+                if (position-1 < 0){
+                    return;
+                }
+                position--;
+                ignore = 2;
+                cf.fileContent.setText(buffer[position]);
+            }
+        };
+
 
     public void updateLines(DocumentEvent e){
+        if (ignore > 0){
+            ignore--;
+            return;
+        }
         try {
+            for (int i = 0; i < buffer.length-position; i++){
+                if (buffer[position+i] == null){
+                    break;
+                }
+                buffer[i] = buffer[position+i];
+            }
+            position = 0;
+            for (int i = 0; i < buffer.length; i++){
+                if (i == buffer.length-1){
+                    continue;
+                }
+                buffer[buffer.length-1-i] = buffer[buffer.length-2-i];
+            }
             String text = e.getDocument().getText(0, e.getDocument().getLength());
+            buffer[0] = text;
             if (cf.currentFile != null){
                 if (fileBuff == null){
                     fileBuff = cf.currentFile;
@@ -163,7 +207,7 @@ class changeFile implements ActionListener {
     public JPanel fileListObj;
     public JButton defaultButt;
     private bufferReader br = new bufferReader();
-    
+
     public void fixButtons(){
         if (currentFile == null){
             return;
@@ -436,6 +480,10 @@ class wl implements WindowListener{
                 for (File file:files){
                     file.delete();
                 }
+                File file = new File("unsaved.txt");
+                if (file.exists()){
+                    file.delete();
+                }
             }
         }
         frame.dispose();
@@ -547,6 +595,15 @@ public class Main{
         eL.lines = lines;
         eL.cf = fileChanger;
         currentText.getDocument().addDocumentListener(eL);
+
+        // Setting up Undo and Redo key
+        InputMap tMap = currentText.getInputMap();
+        String UNDO = "Undo Action Key";
+        String REDO = "Redo Action Key";
+        currentText.getActionMap().put(UNDO, eL.undoAction);
+        currentText.getActionMap().put(REDO, eL.redoAction);
+        tMap.put(KeyStroke.getKeyStroke("control Z"), UNDO);
+        tMap.put(KeyStroke.getKeyStroke("control Y"), REDO);
 
         // Adding middle panel to center of window
         frame.add(middle, BorderLayout.CENTER);
