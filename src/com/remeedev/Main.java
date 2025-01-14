@@ -70,7 +70,18 @@ class bufferReader {
         return output;
     }
     public void createBuffer(File file, String content){
-
+        try{
+            File newSave = new File("./saves/"+file.getName());
+            if (!newSave.exists()){
+                newSave.createNewFile();
+            }
+            content = file.getAbsolutePath() + "\n" + content;
+            FileWriter writer = new FileWriter("./saves/" + file.getName());
+            writer.write(content);
+            writer.close();
+        } catch(IOException e){
+            e.printStackTrace();
+        }
     }
     public boolean checkBuffer(String fileName){
         File savesDir = new File("./saves");
@@ -89,10 +100,35 @@ class bufferReader {
 
 class editingListener implements DocumentListener {
     public JTextPane lines;
+    public changeFile cf;
+    public File fileBuff;
 
     public void updateLines(DocumentEvent e){
         try {
             String text = e.getDocument().getText(0, e.getDocument().getLength());
+            if (cf.currentFile != null){
+                if (fileBuff == null){
+                    fileBuff = cf.currentFile;
+                    return;
+                }
+                if (!Objects.equals(fileBuff.getName(), cf.currentFile.getName())){
+                    fileBuff = cf.currentFile;
+                    return;
+                }
+                bufferReader br = new bufferReader();
+                br.createBuffer(cf.currentFile, text);
+            }else{
+                bufferReader br = new bufferReader();
+                try{
+                    File unsaved = new File("unsaved.txt");
+                    if (!unsaved.exists()){
+                        unsaved.createNewFile();
+                    }
+                    br.createBuffer(unsaved, text);
+                }catch(IOException err){
+                    err.printStackTrace();
+                }
+            }
             String[] lineList = text.split("\r\n|\r|\n");
             int lineCount = lineList.length;
             String counting = "";
@@ -127,11 +163,52 @@ class changeFile implements ActionListener {
     public JPanel fileListObj;
     public JButton defaultButt;
     private bufferReader br = new bufferReader();
+    
+    public void fixButtons(){
+        if (currentFile == null){
+            return;
+        }
+        for (int i = 0; i < fileList.size(); i++){
+            if (Objects.equals(fileList.get(i).getName(), currentFile.getName())){
+                fileObjs.get(i).setBackground(Color.LIGHT_GRAY);
+            }else{
+                fileObjs.get(i).setBackground(Color.GRAY);
+            }
+        }
+    }
+
+    public void resolveFiles(){
+        ArrayList<File> newFileList = new ArrayList<File>();
+        ArrayList<JButton> newFileObjs = new ArrayList<JButton>();
+        for (int i = 0; i < fileList.size(); i++){
+            if (fileList.get(i).exists()){
+                newFileList.add(fileList.get(i));
+                newFileObjs.add(fileObjs.get(i));
+                fileObjs.get(i).setBackground(Color.GRAY);
+            }else{
+                fileListObj.remove(fileObjs.get(i));
+            }
+        }
+        fileList = newFileList;
+        fileObjs = newFileObjs;
+        if (fileList.size() == 0){
+            fileListObj.remove(defaultButt);
+            fileListObj.add(defaultButt);
+        }else{
+            if (currentFile == null){
+                currentFile = fileList.get(fileList.size()-1);
+                fixButtons();
+            }
+        }
+        fileListObj.revalidate();
+        fileListObj.repaint();
+    }
 
     public void loadFile(String fileName){
         for (int i = 0; i < fileList.size(); i++){
             if (Objects.equals(fileList.get(i).getName(), fileName)){
                 currentFile = fileList.get(i);
+                fixButtons();
                 String fileText = "";
                 try{
                     File file = fileList.get(i);
@@ -176,10 +253,19 @@ class changeFile implements ActionListener {
     }
 
     public void openFile(File file){
+        File unsaved = new File("unsaved.txt");
+        File unsavedBuff = new File("./saves/unsaved.txt");
+        if (unsaved.exists()){
+            unsaved.delete();
+        }
+        if (unsavedBuff.exists()){
+            unsavedBuff.delete();
+        }
         fileListObj.remove(defaultButt);
         JButton fileButton = new JButton(file.getName());
         fileButton.addActionListener(this);
         fileListObj.add(fileButton);
+        fileObjs.add(fileButton);
         fileListObj.revalidate();
         fileListObj.repaint();
         loadFile(file.getName());
@@ -197,24 +283,119 @@ class openFile implements ActionListener{
 
     public void actionPerformed(ActionEvent e){
         // Adding the file chooser
-        JFileChooser chooser = new JFileChooser();
+        JFileChooser chooser = new JFileChooser(fileHandles.currentFile);
         FileNameExtensionFilter filter = new FileNameExtensionFilter("Text Files", "html", "css", "js", "py", "cpp", "c", "java", "txt", "md");
         chooser.setFileFilter(filter);
         int returnVal = chooser.showOpenDialog(frame);
         if (returnVal == JFileChooser.APPROVE_OPTION){
             if (fileHandles.inFiles(chooser.getSelectedFile().getName())){
-                System.out.println("File already open!");
+                JOptionPane.showMessageDialog(frame, "File is already open!");
             }else{
-                fileHandles.addFile(chooser.getSelectedFile());
+                // Handle files that don't exist
+                if (chooser.getSelectedFile().exists()){
+                    fileHandles.addFile(chooser.getSelectedFile());
+                }
             }
         }
     }
 }
 
+class newFile implements ActionListener {
+    public JFrame frame;
+    public changeFile cf;
+    public void actionPerformed(ActionEvent e){
+        JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Text Files", "html", "css", "js", "py", "cpp", "c", "java", "txt", "md");
+        chooser.setFileFilter(filter);
+        int returnVal = chooser.showOpenDialog(frame);
+        if (returnVal == JFileChooser.APPROVE_OPTION){
+            if (!chooser.getSelectedFile().exists()){
+                try{
+                    chooser.getSelectedFile().createNewFile();            
+                    cf.addFile(chooser.getSelectedFile());
+                } catch(IOException err){
+                    err.printStackTrace();
+                }
+            }else{
+                JOptionPane.showMessageDialog(frame, "File already exists!");
+            }
+        }
+    }
+}
+
+class delFile implements ActionListener {
+    public JFrame frame;
+    public changeFile cf;
+    public void actionPerformed(ActionEvent e){
+        if (cf.currentFile == null){
+            JOptionPane.showMessageDialog(frame, "No file is currently open!");
+            return;
+        }
+        cf.currentFile.delete();
+        cf.currentFile = null;
+        cf.resolveFiles();
+    }
+}
+
 class saveFile implements ActionListener{
     public changeFile cf;
+    public JFrame frame;
     public void saveCurrentFile(){
         if (cf.currentFile == null){
+            JFileChooser chooser = new JFileChooser();
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("Text Files", "html", "css", "js", "py", "cpp", "c", "java", "txt", "md");
+            chooser.setFileFilter(filter);
+            int returnVal = chooser.showOpenDialog(frame);
+            if (returnVal == JFileChooser.APPROVE_OPTION){
+                bufferReader br = new bufferReader();
+                ArrayList<String> fileInfo = br.readBuffer("unsaved.txt");
+                String content = fileInfo.get(0);
+                if (!chooser.getSelectedFile().exists()){
+                    try{
+                        chooser.getSelectedFile().createNewFile();            
+
+                        FileWriter fw = new FileWriter(chooser.getSelectedFile().getAbsolutePath());
+                        fw.write(content);
+                        fw.close();
+                        File unsaved = new File("unsaved.txt");
+                        unsaved.delete();
+                        File unsavedBuff = new File("./saves/unsaved.txt");
+                        unsavedBuff.delete();
+                    } catch(IOException err){
+                        err.printStackTrace();
+                    }
+                }else{
+                    if (cf.inFiles(chooser.getSelectedFile().getName())){
+                        JOptionPane.showMessageDialog(frame, "File is already open!");
+                        return;
+                    }
+                    Object[] options = {"Overwrite", "Cancel"};
+                    int n = JOptionPane.showOptionDialog(frame,
+                        "The file already exists!",
+                        "File already exists",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        options,
+                        options[0]);
+                    if (n == 0){
+                        try{
+                        FileWriter fw = new FileWriter(chooser.getSelectedFile().getAbsolutePath());
+                        fw.write(content);
+                        fw.close();
+                        } catch (IOException err){
+                            err.printStackTrace();
+                        }
+                    }
+                    File unsaved = new File("unsaved.txt");
+                    unsaved.delete();
+                    File unsavedBuff = new File("./saves/unsaved.txt");
+                    unsavedBuff.delete();
+                }
+                cf.addFile(chooser.getSelectedFile());
+            }else{
+                this.saveCurrentFile();
+            }
             return;
         }
         bufferReader br = new bufferReader();
@@ -252,7 +433,9 @@ class wl implements WindowListener{
                 handle.saveCurrentFile();
             }
             if (n == 1){
-                System.out.println("Exiting without saving...");
+                for (File file:files){
+                    file.delete();
+                }
             }
         }
         frame.dispose();
@@ -313,7 +496,20 @@ public class Main{
 
         // Creating new file button
         JButton newFileButton = new JButton("New File");
+        newFile newFileHandle = new newFile();
+        newFileHandle.frame = frame;
+        newFileHandle.cf = fileChanger;
+        newFileButton.addActionListener(newFileHandle);
         topBar.add(newFileButton);
+
+        // Creating new file button
+        JButton delFileButton = new JButton("Delete File");
+        delFile delFileHandle = new delFile();
+        delFileHandle.frame = frame;
+        delFileHandle.cf = fileChanger;
+        delFileButton.addActionListener(delFileHandle);
+        topBar.add(delFileButton);
+
 
         // Adding topbar to the window
         frame.add(topBar, BorderLayout.PAGE_START);
@@ -349,6 +545,7 @@ public class Main{
         // Updating listener
         editingListener eL = new editingListener();
         eL.lines = lines;
+        eL.cf = fileChanger;
         currentText.getDocument().addDocumentListener(eL);
 
         // Adding middle panel to center of window
