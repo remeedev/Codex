@@ -9,6 +9,6 @@ Code editor made with java Swing
 # Compile
 
 ```
-javac -d ./out/ ./src/com/remeedev/codex/Main.java
+javac -d ./out/ ./com/remeedev/codex/Main.java
 java -cp "out" com.remeedev.codex.Main
 ```
