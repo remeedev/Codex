@@ -31,6 +31,7 @@ public class Main{
 
         // Creating open file button
         JButton openButton = new JButton("Open File");
+        openButton.setBackground(Color.LIGHT_GRAY);
         openFile openFileHandle = new openFile();
         openFileHandle.frame = frame;
         openButton.addActionListener(openFileHandle);
@@ -41,6 +42,7 @@ public class Main{
 
         // Creating save file button
         JButton saveButton = new JButton("Save File");
+        saveButton.setBackground(Color.LIGHT_GRAY);
         saveFile saveFileHandle = new saveFile();
         saveFileHandle.cf = fileChanger;
         winl.handle = saveFileHandle;
@@ -49,6 +51,7 @@ public class Main{
 
         // Creating new file button
         JButton newFileButton = new JButton("New File");
+        newFileButton.setBackground(Color.LIGHT_GRAY);
         newFile newFileHandle = new newFile();
         newFileHandle.frame = frame;
         newFileHandle.cf = fileChanger;
@@ -57,6 +60,7 @@ public class Main{
 
         // Creating new file button
         JButton delFileButton = new JButton("Delete File");
+        delFileButton.setBackground(Color.LIGHT_GRAY);
         delFile delFileHandle = new delFile();
         delFileHandle.frame = frame;
         delFileHandle.cf = fileChanger;
@@ -65,6 +69,7 @@ public class Main{
 
         // Creating new file button
         JButton closeFileButton = new JButton("Close File");
+        closeFileButton.setBackground(Color.LIGHT_GRAY);
         closeFile closeFileHandle = new closeFile();
         closeFileHandle.frame = frame;
         closeFileHandle.cf = fileChanger;
@@ -80,6 +85,7 @@ public class Main{
         // Creating open files
         JPanel openFiles = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         JButton defFile = new JButton("(new file)");
+        defFile.setBackground(Color.LIGHT_GRAY);
         openFileHandle.fileHandles = fileChanger;
         fileChanger.fileListObj = openFiles;
         fileChanger.defaultButt = defFile;
@@ -96,6 +102,8 @@ public class Main{
         StyleConstants.setAlignment(attr, StyleConstants.ALIGN_RIGHT);
         lines.setParagraphAttributes(attr, true);
         JTextPane currentText = new JTextPane();
+        currentText.setBackground(Color.DARK_GRAY);
+        currentText.setForeground(Color.WHITE);
         JScrollPane jsp = new JScrollPane(currentText);
         jsp.setRowHeaderView(lines);
         fileChanger.fileContent = currentText;
