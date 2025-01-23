@@ -59,6 +59,7 @@ public class editingListener implements DocumentListener {
             }
             String text = e.getDocument().getText(0, e.getDocument().getLength());
             buffer[0] = text;
+            bufferReader br = new bufferReader();
             if (cf.currentFile != null){
                 if (fileBuff == null){
                     fileBuff = cf.currentFile;
@@ -68,10 +69,8 @@ public class editingListener implements DocumentListener {
                     fileBuff = cf.currentFile;
                     return;
                 }
-                bufferReader br = new bufferReader();
                 br.createBuffer(cf.currentFile, text);
             }else{
-                bufferReader br = new bufferReader();
                 try{
                     File unsaved = new File("unsaved.txt");
                     if (!unsaved.exists()){
@@ -82,8 +81,31 @@ public class editingListener implements DocumentListener {
                     err.printStackTrace();
                 }
             }
-            String[] lineList = text.split("\r\n|\r|\n");
+            File unsaved = new File("unsaved.txt");
+            File finalCompare;
+            if (unsaved.exists()){
+                finalCompare = unsaved;
+            }else{
+                finalCompare = cf.currentFile;
+            }
+            String[] lineList = (text+"hello, world!").split(System.lineSeparator());
             int lineCount = lineList.length;
+            String read = "";
+            try{
+                Scanner reader = new Scanner(finalCompare);
+                while (reader.hasNextLine()){
+                    read = read+reader.nextLine()+"\n";
+                }
+                reader.close();
+            }catch(FileNotFoundException err){
+                err.printStackTrace();
+            }
+            String[] ogLineList = (read+"TIHI").split(System.lineSeparator());
+            if (Objects.equals(read, text) && ogLineList.length == lineCount){
+                finalCompare.delete();
+                File unsavedBuff = new File("./saves/"+finalCompare.getName());
+                unsavedBuff.delete();
+            }
             String counting = "";
             for (int i = 1; i-1 < lineCount; i++){
                 counting = counting + String.valueOf(i) + "\n";
