@@ -96,6 +96,7 @@ public class changeFile implements ActionListener {
                         fileText = fileText + reader.nextLine() + "\n";
                     }
                     fileContent.setText(fileText);
+                    reader.close();
                 } catch(FileNotFoundException e){
                     e.printStackTrace();
                 }
