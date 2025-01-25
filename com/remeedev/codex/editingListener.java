@@ -135,7 +135,9 @@ public class editingListener implements DocumentListener {
             }
             String[] ogLineList = (read+"TIHI").split(System.lineSeparator());
             if (Objects.equals(read, text) && ogLineList.length == lineCount){
-                finalCompare.delete();
+                if (Objects.equals(finalCompare.getName(), "unsaved.txt")){
+                    finalCompare.delete();
+                }
                 File unsavedBuff = new File("./saves/"+finalCompare.getName());
                 unsavedBuff.delete();
             }
