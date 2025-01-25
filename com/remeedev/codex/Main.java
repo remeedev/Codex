@@ -4,6 +4,7 @@ import java.io.*;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
+import java.awt.event.*;
 
 public class Main{
     public static void main(String[] args){
@@ -93,6 +94,9 @@ public class Main{
         openFiles.add(defFile);
         middle.add(openFiles, BorderLayout.PAGE_START);
 
+        int fontSize = 12;
+        // Creating the font and applying to the text fields
+        Font font = new Font("monospaced", 0, fontSize);
         // Creating actual text editor
         JTextPane lines = new JTextPane();
         lines.setEditable(false);
@@ -100,8 +104,28 @@ public class Main{
         // Code to align line numbers to right
         SimpleAttributeSet attr = new SimpleAttributeSet();
         StyleConstants.setAlignment(attr, StyleConstants.ALIGN_RIGHT);
+        StyleConstants.setFontSize(attr, fontSize);
+        StyleConstants.setFontFamily(attr, "monospaced");
         lines.setParagraphAttributes(attr, true);
-        JTextPane currentText = new JTextPane();
+        JTextPane currentText = new JTextPane() {
+            public boolean getScrollableTracksViewportWidth() {
+                if( getSize().width < getParent().getSize().width ) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+  
+            public void setSize( Dimension d ) {
+                if( d.width < getParent().getSize().width ) {
+                    d.width = getParent().getSize().width;
+                }
+                super.setSize( d );
+            }
+        }; 
+        currentText.setFont(font);
+        currentText.setCaretColor(Color.WHITE);
         currentText.setBackground(Color.DARK_GRAY);
         currentText.setForeground(Color.WHITE);
         JScrollPane jsp = new JScrollPane(currentText);
@@ -112,8 +136,11 @@ public class Main{
         
         // Updating listener
         editingListener eL = new editingListener();
+        eL.fontSize = fontSize;
+        eL.attr = attr;
         eL.lines = lines;
         eL.cf = fileChanger;
+        eL.font = font;
         currentText.getDocument().addDocumentListener(eL);
 
         // Setting up Undo and Redo key
@@ -124,6 +151,14 @@ public class Main{
         currentText.getActionMap().put(REDO, eL.redoAction);
         tMap.put(KeyStroke.getKeyStroke("control Z"), UNDO);
         tMap.put(KeyStroke.getKeyStroke("control Y"), REDO);
+
+        // Setting up increaseFont and decreaseFont
+        String IFont = "Increase Font Key";
+        String DFont = "Decrease Font Key";
+        currentText.getActionMap().put(IFont, eL.increaseFont);
+        currentText.getActionMap().put(DFont, eL.decreaseFont);
+        tMap.put(KeyStroke.getKeyStroke(107, InputEvent.CTRL_DOWN_MASK), IFont);
+        tMap.put(KeyStroke.getKeyStroke(109, InputEvent.CTRL_DOWN_MASK), DFont);
 
         // Adding middle panel to center of window
         frame.add(middle, BorderLayout.CENTER);

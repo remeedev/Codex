@@ -5,15 +5,20 @@ import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.event.*;
 import java.util.*;
+import java.awt.*;
 import javax.swing.event.*;
 
 public class editingListener implements DocumentListener {
     public JTextPane lines;
     public changeFile cf;
+    public Font font;
+    public int fontSize;
+    public SimpleAttributeSet attr;
     public File fileBuff;
     public String[] buffer = new String[25];
     public int position = 0;
     private int ignore = 0;
+    private int bufferSize = 0;
 
     public Action undoAction = new AbstractAction(){
             public void actionPerformed(ActionEvent e){
@@ -37,6 +42,31 @@ public class editingListener implements DocumentListener {
             }
         };
 
+    public void updateFont(){
+        StyleConstants.setFontSize(attr, fontSize);
+        StyledDocument sD = cf.lines.getStyledDocument();
+        sD.setCharacterAttributes(0, sD.getLength(), attr, true);
+        cf.fileContent.setFont(new Font("monospaced", 0, fontSize));
+    }
+
+    public Action increaseFont = new AbstractAction(){
+        public void actionPerformed(ActionEvent e){
+            fontSize++;
+            fontSize++;
+            updateFont();
+        }
+    };
+
+    public Action decreaseFont = new AbstractAction(){
+        public void actionPerformed(ActionEvent e){
+            fontSize--;
+            fontSize--;
+            if (fontSize <= 0){
+                fontSize = 2;
+            }
+            updateFont();
+        }
+    };
 
     public void updateLines(DocumentEvent e){
         if (ignore > 0){
@@ -63,11 +93,9 @@ public class editingListener implements DocumentListener {
             if (cf.currentFile != null){
                 if (fileBuff == null){
                     fileBuff = cf.currentFile;
-                    return;
                 }
                 if (!Objects.equals(fileBuff.getName(), cf.currentFile.getName())){
                     fileBuff = cf.currentFile;
-                    return;
                 }
                 br.createBuffer(cf.currentFile, text);
             }else{
@@ -90,6 +118,11 @@ public class editingListener implements DocumentListener {
             }
             String[] lineList = (text+"hello, world!").split(System.lineSeparator());
             int lineCount = lineList.length;
+            if (bufferSize == lineCount){
+                System.out.println("aaa");
+                bufferSize = lineCount;
+                return;
+            }
             String read = "";
             try{
                 Scanner reader = new Scanner(finalCompare);
@@ -111,6 +144,7 @@ public class editingListener implements DocumentListener {
                 counting = counting + String.valueOf(i) + "\n";
             }
             lines.setText(counting);
+            updateFont();
         } catch (BadLocationException err) {
             err.printStackTrace();
         }
