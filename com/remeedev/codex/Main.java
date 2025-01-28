@@ -160,6 +160,14 @@ public class Main{
         tMap.put(KeyStroke.getKeyStroke(107, InputEvent.CTRL_DOWN_MASK), IFont);
         tMap.put(KeyStroke.getKeyStroke(109, InputEvent.CTRL_DOWN_MASK), DFont);
 
+        // Adding basic key strokes, save and open
+        String saveF = "Save File Key";
+        String openF = "Open File Key";
+        currentText.getActionMap().put(saveF, saveFileHandle.saveAction);
+        currentText.getActionMap().put(openF, openFileHandle.openAction);
+        tMap.put(KeyStroke.getKeyStroke(79, InputEvent.CTRL_DOWN_MASK), openF);
+        tMap.put(KeyStroke.getKeyStroke(83, InputEvent.CTRL_DOWN_MASK), saveF);
+
         // Adding middle panel to center of window
         frame.add(middle, BorderLayout.CENTER);
  

@@ -9,6 +9,14 @@ import java.util.*;
 public class saveFile implements ActionListener{
     public changeFile cf;
     public JFrame frame;
+
+    public Action saveAction = new AbstractAction(){
+            public void actionPerformed(ActionEvent e){
+                saveCurrentFile();
+            }
+        };
+
+
     public void saveCurrentFile(){
         if (cf.currentFile == null){
             JFileChooser chooser = new JFileChooser();
@@ -16,6 +24,10 @@ public class saveFile implements ActionListener{
             chooser.setFileFilter(filter);
             int returnVal = chooser.showOpenDialog(frame);
             if (returnVal == JFileChooser.APPROVE_OPTION){
+                File unsaved = new File("./saves/unsaved.txt");
+                if (!unsaved.exists()){
+                    return;
+                }
                 bufferReader br = new bufferReader();
                 ArrayList<String> fileInfo = br.readBuffer("unsaved.txt");
                 String content = fileInfo.get(0);
@@ -26,10 +38,13 @@ public class saveFile implements ActionListener{
                         FileWriter fw = new FileWriter(chooser.getSelectedFile().getAbsolutePath());
                         fw.write(content);
                         fw.close();
-                        File unsaved = new File("unsaved.txt");
-                        unsaved.delete();
+                        if (unsaved.exists()){
+                            unsaved.delete();
+                        }
                         File unsavedBuff = new File("./saves/unsaved.txt");
-                        unsavedBuff.delete();
+                        if (unsavedBuff.exists()){
+                            unsavedBuff.delete();
+                        }
                     } catch(IOException err){
                         err.printStackTrace();
                     }
@@ -56,11 +71,13 @@ public class saveFile implements ActionListener{
                             err.printStackTrace();
                         }
                     }
-                    File unsaved = new File("unsaved.txt");
-                    unsaved.delete();
+                    if (unsaved.exists()){
+                        unsaved.delete();
+                    }
                     File unsavedBuff = new File("./saves/unsaved.txt");
-                    unsavedBuff.delete();
-                }
+                    if (unsavedBuff.exists()){
+                        unsavedBuff.delete();
+                    }                }
                 cf.addFile(chooser.getSelectedFile());
             }else{
                 this.saveCurrentFile();
