@@ -107,23 +107,7 @@ public class Main{
         StyleConstants.setFontSize(attr, fontSize);
         StyleConstants.setFontFamily(attr, "monospaced");
         lines.setParagraphAttributes(attr, true);
-        JTextPane currentText = new JTextPane() {
-            public boolean getScrollableTracksViewportWidth() {
-                if( getSize().width < getParent().getSize().width ) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-  
-            public void setSize( Dimension d ) {
-                if( d.width < getParent().getSize().width ) {
-                    d.width = getParent().getSize().width;
-                }
-                super.setSize( d );
-            }
-        }; 
+        JTextPane currentText = new JTextPane();
         currentText.setFont(font);
         currentText.setCaretColor(Color.WHITE);
         currentText.setBackground(Color.DARK_GRAY);

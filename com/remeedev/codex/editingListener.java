@@ -119,7 +119,6 @@ public class editingListener implements DocumentListener {
             String[] lineList = (text+"hello, world!").split(System.lineSeparator());
             int lineCount = lineList.length;
             if (bufferSize == lineCount){
-                System.out.println("aaa");
                 bufferSize = lineCount;
                 return;
             }
@@ -143,7 +142,7 @@ public class editingListener implements DocumentListener {
             }
             String counting = "";
             for (int i = 1; i-1 < lineCount; i++){
-                counting = counting + String.valueOf(i) + "\n";
+                counting = counting + String.valueOf(i) + new String(new char[detectLineWraps(lineList[i-1])]).replace("\0", "\n") + "\n";
             }
             lines.setText(counting);
             updateFont();
@@ -162,5 +161,24 @@ public class editingListener implements DocumentListener {
 
     public void removeUpdate(DocumentEvent e){
         updateLines(e);
+    }
+
+    private int detectLineWraps(String text){
+        // Handle for more than one line being created on a single line
+        // Also known as line wrapping
+        Canvas exampleCanvas = new Canvas();
+        FontMetrics metrics = exampleCanvas.getFontMetrics(new Font("monospaced", 0, fontSize));
+        int singleChar = metrics.charWidth(' ');
+        String[] words = text.split(" ");
+        int lineWraps = 0;
+        int currentWidth = 0;
+        for (int i = 0; i < words.length; i++){
+            currentWidth = currentWidth + metrics.stringWidth(words[i]) + singleChar;
+            if (currentWidth > cf.fileContent.getSize().width){
+                currentWidth = metrics.stringWidth(words[i]);
+                lineWraps++;
+            }
+        }
+        return lineWraps;
     }
 }
