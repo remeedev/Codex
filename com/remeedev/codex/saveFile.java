@@ -18,6 +18,9 @@ public class saveFile implements ActionListener{
 
 
     public void saveCurrentFile(){
+        if (Objects.equals(cf.fileContent.getText(), "")){
+            return;
+        }
         if (cf.currentFile == null){
             JFileChooser chooser = new JFileChooser();
             FileNameExtensionFilter filter = new FileNameExtensionFilter("Text Files", "html", "css", "js", "py", "cpp", "c", "java", "txt", "md");
